@@ -448,6 +448,10 @@ with tab2:
         c_path = st.session_state.get('click_path', 'yoochoose-clicks.dat')
         p_path = st.session_state.get('purchase_path', 'yoochoose-buys.dat')
         
+        # Tự động fallback sang file mock nếu file thật (1.4GB) không tồn tại trên Cloud
+        if not os.path.exists(c_path): c_path = 'yoochoose-clicks-mock.csv'
+        if not os.path.exists(p_path): p_path = 'yoochoose-purchases-mock.csv'
+        
         st.markdown("**🖥️ Terminal Console (Visualizing MapReduce Workflow):**")
         console_placeholder = st.empty()
         logs = []
@@ -459,8 +463,15 @@ with tab2:
             console_placeholder.code("\\n".join(logs), language="bash")
 
         with st.status("Theo dõi Luồng MapReduce...", expanded=True) as status:
-            log_to_console("Initializing SparkSession on local[*]")
-            spark = SparkSession.builder.appName("BigHUSRec").master("local[*]").getOrCreate()
+            log_to_console("Initializing SparkSession with Cloud-Optimized parameters...")
+            spark = SparkSession.builder \\
+                .appName("BigHUSRec") \\
+                .master("local[2]") \\
+                .config("spark.driver.memory", "512m") \\
+                .config("spark.executor.memory", "512m") \\
+                .config("spark.sql.shuffle.partitions", "2") \\
+                .config("spark.default.parallelism", "2") \\
+                .getOrCreate()
             spark.sparkContext.setLogLevel("ERROR")
             log_to_console("SparkContext successfully allocated. JVM is ready.")
             
