@@ -3,6 +3,10 @@ import pandas as pd
 import os
 import sys
 
+# Thiết lập JAVA_HOME bắt buộc cho Streamlit Cloud (Môi trường Linux/Debian)
+if sys.platform.startswith('linux'):
+    os.environ["JAVA_HOME"] = "/usr/lib/jvm/default-java"
+
 # Thêm đường dẫn dự án vào PYTHONPATH
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
