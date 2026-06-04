@@ -157,149 +157,153 @@ with tab1:
     click_path = st.text_input("Đường dẫn Clickstream (.dat):", value="yoochoose-clicks.dat")
     purchase_path = st.text_input("Đường dẫn Purchase (.dat):", value="yoochoose-buys.dat")
     
-    st.markdown('<div class="step-box"><b>Khâu 1.2: Minh chứng Dữ liệu Thô (Raw Data Extraction)</b></div>', unsafe_allow_html=True)
-    render_academic_block(
-        title="Lý thuyết: Nạp dữ liệu phi cấu trúc",
-        theory="Trích xuất (Extract) dữ liệu từ các file Log thô. Dữ liệu này phân mảnh thành 2 luồng độc lập: hành vi xem (Click) và hành vi thanh toán (Buy).",
-        math="Không gian dữ liệu: $D_{raw} = \\{C, P\\}$",
-        practical="Kiểm tra cấu trúc tệp ban đầu xem có bị hỏng hoặc sai định dạng hay không.",
-        situation="File YOOCHOOSE phân cách bằng dấu phẩy nhưng không có dòng tiêu đề.",
-        recommendation="Sử dụng Pandas/PySpark để định danh lại cột.",
-        evidence_md="Xem bảng DataFrame thực tế ở bên dưới."
-    )
-    
-    # Tạo mock data fallback nếu file không tồn tại
-    raw_clicks_df = pd.DataFrame([
-        [11, '2014-04-03T10:44:35.672Z', 214536502, 0],
-        [11, '2014-04-03T10:45:01.423Z', 214536500, 0],
-        [12, '2014-04-02T10:22:15.111Z', 214536502, 0]
-    ], columns=['SessionID', 'Timestamp', 'ItemID', 'Category'])
-    
-    raw_buys_df = pd.DataFrame([
-        [11, '2014-04-03T10:45:11.233Z', 214536502, 1500, 2],
-        [12, '2014-04-02T10:25:10.000Z', 214536502, 1500, 1]
-    ], columns=['SessionID', 'Timestamp', 'ItemID', 'Price', 'Quantity'])
-    
-    if os.path.exists(click_path) and os.path.exists(purchase_path):
-        raw_clicks_df = pd.read_csv(click_path, header=None, names=['SessionID', 'Timestamp', 'ItemID', 'Category'], nrows=5)
-        raw_buys_df = pd.read_csv(purchase_path, header=None, names=['SessionID', 'Timestamp', 'ItemID', 'Price', 'Quantity'], nrows=5)
-        st.success("✅ Đã trích xuất dữ liệu thô từ file thực tế.")
-    else:
-        st.warning("⚠️ Không tìm thấy file dữ liệu thực. Hệ thống đang hiển thị Dữ liệu Mẫu (Mock) của YOOCHOOSE để minh chứng.")
+    if st.button("🚀 Chạy Pipeline Tiền Xử Lý"):
+        st.session_state["etl_run"] = True
 
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("**Bảng Minh chứng: Raw Clickstream**")
-        st.dataframe(raw_clicks_df, use_container_width=True)
-    with col2:
-        st.markdown("**Bảng Minh chứng: Raw Purchases**")
-        st.dataframe(raw_buys_df, use_container_width=True)
-
-    st.markdown('<div class="step-box"><b>Khâu 1.3: Minh chứng Tiền xử lý Dữ liệu (Data Preprocessing)</b></div>', unsafe_allow_html=True)
-    render_academic_block(
-        title="Lý thuyết: Làm sạch (Data Cleaning) & Xử lý Ngoại lai",
-        theory="Làm sạch dữ liệu nhằm loại bỏ các giá trị bị khuyết (Missing Values) hoặc lỗi định dạng. Một mô hình chuẩn yêu cầu các bản ghi phải đầy đủ Session ID và Item ID.",
-        math="Tập hợp hợp lệ: $D_{clean} = \\{x \\in D_{raw} \\mid x_{session} \\neq \\emptyset \\wedge x_{item} \\neq \\emptyset \\}$",
-        practical="Ngăn chặn các lỗi Null Pointer Exception trong MapReduce và sai lệch do rác.",
-        situation="YOOCHOOSE đôi khi chứa các bản ghi bị ngắt quãng hoặc thiếu thông tin sản phẩm.",
-        recommendation="Sử dụng hàm `.dropna()` và ép kiểu nghiêm ngặt (Casting).",
-        evidence_md="Dữ liệu sau khi làm sạch sẽ mất đi các dòng lỗi."
-    )
-    
-    # Preprocessing
-    clean_buys_df = raw_buys_df.dropna(subset=['SessionID', 'ItemID']).copy()
-    clean_buys_df['Price'] = clean_buys_df['Price'].astype(float)
-    clean_buys_df['Quantity'] = clean_buys_df['Quantity'].astype(int)
-    
-    st.markdown("**Bảng Minh chứng: Purchases Sau khi Làm sạch (Ép kiểu chuẩn)**")
-    st.dataframe(clean_buys_df, use_container_width=True)
-
-    st.markdown('<div class="step-box"><b>Khâu 1.4: Minh chứng Chuẩn hóa & Tính Tiện ích (Normalization & Utility Calculation)</b></div>', unsafe_allow_html=True)
-    render_academic_block(
-        title="Lý thuyết: Biến đổi Chuẩn hóa Kinh tế (Utility Transformation)",
-        theory="Trong HUSPM, các đại lượng như Giá (Price) và Số lượng (Quantity) không thể sử dụng độc lập. Chuẩn hóa ở đây là việc tổng hợp các trường này thành một thang đo lợi ích duy nhất gọi là Tiện ích (Utility).",
-        math="Hàm chuẩn hóa: $Utility(x) = p_x \\times q_x$. Ví dụ: Mua 2 cái áo giá 1500 -> Utility = 3000.",
-        practical="Chuyển hướng hệ thống từ việc chỉ gợi ý các món hàng rẻ tiền (nhưng mua nhiều) sang gợi ý đồ sinh lời cao cho doanh nghiệp.",
-        situation="YOOCHOOSE gốc không cung cấp cột Utility.",
-        recommendation="Tạo cột phái sinh (Derived Column) trước khi đẩy vào HUS-SPAN.",
-        evidence_md="Xem cột mới `Utility` được thêm vào bảng dưới."
-    )
-    
-    # Normalization
-    clean_buys_df['Utility'] = clean_buys_df['Price'] * clean_buys_df['Quantity']
-    st.markdown("**Bảng Minh chứng: Output Chuẩn hóa (Sẵn sàng cho MapReduce)**")
-    st.dataframe(clean_buys_df, use_container_width=True)
-    
-    with st.expander("⚙️ Chi tiết Kỹ thuật: Các Hàm (Functions) & Bước thực thi ETL"):
-        st.markdown("""
-        **1. Hàm `load_clickstream(spark, file_path)`**
-        - **Mục đích:** Nạp dữ liệu Log Click thô vào hệ thống phân tán PySpark.
-        - **Bước thực hiện:** 
-          1. Khởi tạo `spark.read.csv` không có header.
-          2. Đổi tên cột thành `SessionID, Timestamp, ItemID, Category`.
-          3. Ép kiểu (Casting) `SessionID` và `ItemID` sang Integer.
+    if st.session_state.get("etl_run", False):
+        st.markdown('<div class="step-box"><b>Khâu 1.2: Minh chứng Dữ liệu Thô (Raw Data Extraction)</b></div>', unsafe_allow_html=True)
+        render_academic_block(
+            title="Lý thuyết: Nạp dữ liệu phi cấu trúc",
+            theory="Trích xuất (Extract) dữ liệu từ các file Log thô. Dữ liệu này phân mảnh thành 2 luồng độc lập: hành vi xem (Click) và hành vi thanh toán (Buy).",
+            math="Không gian dữ liệu: $D_{raw} = \\{C, P\\}$",
+            practical="Kiểm tra cấu trúc tệp ban đầu xem có bị hỏng hoặc sai định dạng hay không.",
+            situation="File YOOCHOOSE phân cách bằng dấu phẩy nhưng không có dòng tiêu đề.",
+            recommendation="Sử dụng Pandas/PySpark để định danh lại cột.",
+            evidence_md="Xem bảng DataFrame thực tế ở bên dưới."
+        )
         
-        **2. Hàm `load_purchases(spark, file_path)`**
-        - **Mục đích:** Nạp dữ liệu Mua hàng, xử lý ngoại lai và tính Tiện ích (Utility).
-        - **Bước thực hiện:**
-          1. Nạp CSV, định danh `SessionID, Timestamp, ItemID, Price, Quantity`.
-          2. Lọc bỏ các dòng lỗi (`dropna`).
-          3. Thêm cột phái sinh: `.withColumn("Utility", col("Price") * col("Quantity"))`.
-          4. Trả về DataFrame sạch (Cleaned DataFrame) sẵn sàng cho cụm tính toán.
-        """)
+        # Tạo mock data fallback nếu file không tồn tại
+        raw_clicks_df = pd.DataFrame([
+            [11, '2014-04-03T10:44:35.672Z', 214536502, 0],
+            [11, '2014-04-03T10:45:01.423Z', 214536500, 0],
+            [12, '2014-04-02T10:22:15.111Z', 214536502, 0]
+        ], columns=['SessionID', 'Timestamp', 'ItemID', 'Category'])
+        
+        raw_buys_df = pd.DataFrame([
+            [11, '2014-04-03T10:45:11.233Z', 214536502, 1500, 2],
+            [12, '2014-04-02T10:25:10.000Z', 214536502, 1500, 1]
+        ], columns=['SessionID', 'Timestamp', 'ItemID', 'Price', 'Quantity'])
+        
+        if os.path.exists(click_path) and os.path.exists(purchase_path):
+            raw_clicks_df = pd.read_csv(click_path, header=None, names=['SessionID', 'Timestamp', 'ItemID', 'Category'], nrows=5)
+            raw_buys_df = pd.read_csv(purchase_path, header=None, names=['SessionID', 'Timestamp', 'ItemID', 'Price', 'Quantity'], nrows=5)
+            st.success("✅ Đã trích xuất dữ liệu thô từ file thực tế.")
+        else:
+            st.warning("⚠️ Không tìm thấy file dữ liệu thực. Hệ thống đang hiển thị Dữ liệu Mẫu (Mock) của YOOCHOOSE để minh chứng.")
     
-    st.markdown('<div class="step-box"><b>Khâu 1.5: Khám phá Phân phối Dữ liệu (Exploratory Data Analysis - EDA)</b></div>', unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("**Bảng Minh chứng: Raw Clickstream**")
+            st.dataframe(raw_clicks_df, use_container_width=True)
+        with col2:
+            st.markdown("**Bảng Minh chứng: Raw Purchases**")
+            st.dataframe(raw_buys_df, use_container_width=True)
     
-    st.subheader("Biểu đồ 1: Phân phối Tần suất Click (Power-law Distribution)")
-    render_academic_block(
-        title="Lý thuyết Biểu đồ: Phân phối Tần suất (Đuôi dài - Long-tail)",
-        theory="Trong thương mại điện tử, tần suất click/mua hàng thường tuân theo phân phối Power-law (Định luật Pareto 80/20). Rất ít mặt hàng 'Hot' chiếm đại đa số lượt tương tác.",
-        math="Hàm mật độ: $f(k) = c \\cdot k^{-\\alpha}$, với $k$ là thứ hạng mặt hàng.",
-        practical="Biểu đồ chứng minh dữ liệu mất cân bằng nghiêm trọng (Sparsity & Popularity Bias). Nếu chỉ dùng thuật toán đếm (Frequent Itemset), hệ thống sẽ bỏ qua các mặt hàng sinh lời cao nhưng ít người xem.",
-        situation="Nhìn vào biểu đồ dưới, mặt hàng Top 1 chiếm áp đảo so với phần còn lại.",
-        recommendation="Sử dụng mô hình BigHUSRec kết hợp Utility thay vì chỉ đếm Support để tránh thiên lệch.",
-        evidence_md="**Minh chứng Biểu đồ Bar Chart:** Hiển thị 10 sản phẩm có lượt Click cao nhất."
-    )
+        st.markdown('<div class="step-box"><b>Khâu 1.3: Minh chứng Tiền xử lý Dữ liệu (Data Preprocessing)</b></div>', unsafe_allow_html=True)
+        render_academic_block(
+            title="Lý thuyết: Làm sạch (Data Cleaning) & Xử lý Ngoại lai",
+            theory="Làm sạch dữ liệu nhằm loại bỏ các giá trị bị khuyết (Missing Values) hoặc lỗi định dạng. Một mô hình chuẩn yêu cầu các bản ghi phải đầy đủ Session ID và Item ID.",
+            math="Tập hợp hợp lệ: $D_{clean} = \\{x \\in D_{raw} \\mid x_{session} \\neq \\emptyset \\wedge x_{item} \\neq \\emptyset \\}$",
+            practical="Ngăn chặn các lỗi Null Pointer Exception trong MapReduce và sai lệch do rác.",
+            situation="YOOCHOOSE đôi khi chứa các bản ghi bị ngắt quãng hoặc thiếu thông tin sản phẩm.",
+            recommendation="Sử dụng hàm `.dropna()` và ép kiểu nghiêm ngặt (Casting).",
+            evidence_md="Dữ liệu sau khi làm sạch sẽ mất đi các dòng lỗi."
+        )
+        
+        # Preprocessing
+        clean_buys_df = raw_buys_df.dropna(subset=['SessionID', 'ItemID']).copy()
+        clean_buys_df['Price'] = clean_buys_df['Price'].astype(float)
+        clean_buys_df['Quantity'] = clean_buys_df['Quantity'].astype(int)
+        
+        st.markdown("**Bảng Minh chứng: Purchases Sau khi Làm sạch (Ép kiểu chuẩn)**")
+        st.dataframe(clean_buys_df, use_container_width=True)
     
-    if os.path.exists(click_path):
-        clicks_sample = pd.read_csv(click_path, header=None, names=['SessionID', 'Timestamp', 'ItemID', 'Category'], nrows=100000)
-        click_counts = clicks_sample['ItemID'].value_counts().head(10)
-        click_counts.index = click_counts.index.astype(str)
-    else:
-        # Mock data tuân theo Power-law
-        item_ids = [f"Item {i}" for i in range(1, 11)]
-        counts = [10000, 4500, 2000, 1100, 600, 350, 200, 120, 80, 50]
-        click_counts = pd.Series(counts, index=item_ids)
-        st.info("💡 Đang hiển thị Dữ liệu Mẫu (Mock) cho biểu đồ do chưa tìm thấy file thực tế.")
-    st.bar_chart(click_counts)
-
-    st.subheader("Biểu đồ 2: Phân phối Mức giá (Price Distribution)")
-    render_academic_block(
-        title="Lý thuyết Biểu đồ: Phân phối & Xử lý Ngoại lai (Outliers)",
-        theory="Giá của sản phẩm trong E-commerce thường phân bố lệch phải (Right-skewed) hoặc tuân theo Log-Normal.",
-        math="Mật độ Log-Normal: $P(x) = \\frac{1}{x \\sigma \\sqrt{2\\pi}} e^{- \\frac{(\\ln x - \\mu)^2}{2\\sigma^2}}$.",
-        practical="Cho phép xác định khoảng giá sinh lời chính yếu. Các giao dịch có giá cực đoan (Ví dụ > 95th Percentile) thường là lỗi ghi nhận Log.",
-        situation="Trục hoành hiển thị các dải mức giá (Bins), trục tung là số lượng mặt hàng trong dải đó.",
-        recommendation="Sử dụng phép cắt đuôi (Quantile cutoff 95%) trước khi tính toán để tránh làm nhiễu hệ số Utility.",
-        evidence_md="**Minh chứng Biểu đồ Bar Chart:** Hiển thị mật độ phân phối giá sau khi loại bỏ 5% ngoại lai cao nhất."
-    )
+        st.markdown('<div class="step-box"><b>Khâu 1.4: Minh chứng Chuẩn hóa & Tính Tiện ích (Normalization & Utility Calculation)</b></div>', unsafe_allow_html=True)
+        render_academic_block(
+            title="Lý thuyết: Biến đổi Chuẩn hóa Kinh tế (Utility Transformation)",
+            theory="Trong HUSPM, các đại lượng như Giá (Price) và Số lượng (Quantity) không thể sử dụng độc lập. Chuẩn hóa ở đây là việc tổng hợp các trường này thành một thang đo lợi ích duy nhất gọi là Tiện ích (Utility).",
+            math="Hàm chuẩn hóa: $Utility(x) = p_x \\times q_x$. Ví dụ: Mua 2 cái áo giá 1500 -> Utility = 3000.",
+            practical="Chuyển hướng hệ thống từ việc chỉ gợi ý các món hàng rẻ tiền (nhưng mua nhiều) sang gợi ý đồ sinh lời cao cho doanh nghiệp.",
+            situation="YOOCHOOSE gốc không cung cấp cột Utility.",
+            recommendation="Tạo cột phái sinh (Derived Column) trước khi đẩy vào HUS-SPAN.",
+            evidence_md="Xem cột mới `Utility` được thêm vào bảng dưới."
+        )
+        
+        # Normalization
+        clean_buys_df['Utility'] = clean_buys_df['Price'] * clean_buys_df['Quantity']
+        st.markdown("**Bảng Minh chứng: Output Chuẩn hóa (Sẵn sàng cho MapReduce)**")
+        st.dataframe(clean_buys_df, use_container_width=True)
+        
+        with st.expander("⚙️ Chi tiết Kỹ thuật: Các Hàm (Functions) & Bước thực thi ETL"):
+            st.markdown("""
+            **1. Hàm `load_clickstream(spark, file_path)`**
+            - **Mục đích:** Nạp dữ liệu Log Click thô vào hệ thống phân tán PySpark.
+            - **Bước thực hiện:** 
+              1. Khởi tạo `spark.read.csv` không có header.
+              2. Đổi tên cột thành `SessionID, Timestamp, ItemID, Category`.
+              3. Ép kiểu (Casting) `SessionID` và `ItemID` sang Integer.
+            
+            **2. Hàm `load_purchases(spark, file_path)`**
+            - **Mục đích:** Nạp dữ liệu Mua hàng, xử lý ngoại lai và tính Tiện ích (Utility).
+            - **Bước thực hiện:**
+              1. Nạp CSV, định danh `SessionID, Timestamp, ItemID, Price, Quantity`.
+              2. Lọc bỏ các dòng lỗi (`dropna`).
+              3. Thêm cột phái sinh: `.withColumn("Utility", col("Price") * col("Quantity"))`.
+              4. Trả về DataFrame sạch (Cleaned DataFrame) sẵn sàng cho cụm tính toán.
+            """)
+        
+        st.markdown('<div class="step-box"><b>Khâu 1.5: Khám phá Phân phối Dữ liệu (Exploratory Data Analysis - EDA)</b></div>', unsafe_allow_html=True)
+        
+        st.subheader("Biểu đồ 1: Phân phối Tần suất Click (Power-law Distribution)")
+        render_academic_block(
+            title="Lý thuyết Biểu đồ: Phân phối Tần suất (Đuôi dài - Long-tail)",
+            theory="Trong thương mại điện tử, tần suất click/mua hàng thường tuân theo phân phối Power-law (Định luật Pareto 80/20). Rất ít mặt hàng 'Hot' chiếm đại đa số lượt tương tác.",
+            math="Hàm mật độ: $f(k) = c \\cdot k^{-\\alpha}$, với $k$ là thứ hạng mặt hàng.",
+            practical="Biểu đồ chứng minh dữ liệu mất cân bằng nghiêm trọng (Sparsity & Popularity Bias). Nếu chỉ dùng thuật toán đếm (Frequent Itemset), hệ thống sẽ bỏ qua các mặt hàng sinh lời cao nhưng ít người xem.",
+            situation="Nhìn vào biểu đồ dưới, mặt hàng Top 1 chiếm áp đảo so với phần còn lại.",
+            recommendation="Sử dụng mô hình BigHUSRec kết hợp Utility thay vì chỉ đếm Support để tránh thiên lệch.",
+            evidence_md="**Minh chứng Biểu đồ Bar Chart:** Hiển thị 10 sản phẩm có lượt Click cao nhất."
+        )
+        
+        if os.path.exists(click_path):
+            clicks_sample = pd.read_csv(click_path, header=None, names=['SessionID', 'Timestamp', 'ItemID', 'Category'], nrows=100000)
+            click_counts = clicks_sample['ItemID'].value_counts().head(10)
+            click_counts.index = click_counts.index.astype(str)
+        else:
+            # Mock data tuân theo Power-law
+            item_ids = [f"Item {i}" for i in range(1, 11)]
+            counts = [10000, 4500, 2000, 1100, 600, 350, 200, 120, 80, 50]
+            click_counts = pd.Series(counts, index=item_ids)
+            st.info("💡 Đang hiển thị Dữ liệu Mẫu (Mock) cho biểu đồ do chưa tìm thấy file thực tế.")
+        st.bar_chart(click_counts)
     
-    if os.path.exists(purchase_path):
-        purchases_sample = pd.read_csv(purchase_path, header=None, names=['SessionID', 'Timestamp', 'ItemID', 'Price', 'Quantity'], nrows=100000)
-        q_price = purchases_sample[purchases_sample['Price'] < purchases_sample['Price'].quantile(0.95)]
-        price_bins = pd.cut(q_price['Price'], bins=20).value_counts().sort_index()
-        price_bins.index = price_bins.index.astype(str)
-    else:
-        # Mock Log-normal bins
-        import numpy as np
-        np.random.seed(42)
-        mock_prices = np.random.lognormal(mean=7.0, sigma=0.5, size=5000)
-        mock_prices = mock_prices[mock_prices < np.percentile(mock_prices, 95)]
-        price_bins = pd.cut(mock_prices, bins=20).value_counts().sort_index()
-        price_bins.index = [f"{int(i.left)}-{int(i.right)}" for i in price_bins.index]
-        st.info("💡 Đang hiển thị Dữ liệu Mẫu (Mock) cho phân phối giá.")
-    st.bar_chart(price_bins)
-
+        st.subheader("Biểu đồ 2: Phân phối Mức giá (Price Distribution)")
+        render_academic_block(
+            title="Lý thuyết Biểu đồ: Phân phối & Xử lý Ngoại lai (Outliers)",
+            theory="Giá của sản phẩm trong E-commerce thường phân bố lệch phải (Right-skewed) hoặc tuân theo Log-Normal.",
+            math="Mật độ Log-Normal: $P(x) = \\frac{1}{x \\sigma \\sqrt{2\\pi}} e^{- \\frac{(\\ln x - \\mu)^2}{2\\sigma^2}}$.",
+            practical="Cho phép xác định khoảng giá sinh lời chính yếu. Các giao dịch có giá cực đoan (Ví dụ > 95th Percentile) thường là lỗi ghi nhận Log.",
+            situation="Trục hoành hiển thị các dải mức giá (Bins), trục tung là số lượng mặt hàng trong dải đó.",
+            recommendation="Sử dụng phép cắt đuôi (Quantile cutoff 95%) trước khi tính toán để tránh làm nhiễu hệ số Utility.",
+            evidence_md="**Minh chứng Biểu đồ Bar Chart:** Hiển thị mật độ phân phối giá sau khi loại bỏ 5% ngoại lai cao nhất."
+        )
+        
+        if os.path.exists(purchase_path):
+            purchases_sample = pd.read_csv(purchase_path, header=None, names=['SessionID', 'Timestamp', 'ItemID', 'Price', 'Quantity'], nrows=100000)
+            q_price = purchases_sample[purchases_sample['Price'] < purchases_sample['Price'].quantile(0.95)]
+            price_bins = pd.cut(q_price['Price'], bins=20).value_counts().sort_index()
+            price_bins.index = price_bins.index.astype(str)
+        else:
+            # Mock Log-normal bins
+            import numpy as np
+            np.random.seed(42)
+            mock_prices = np.random.lognormal(mean=7.0, sigma=0.5, size=5000)
+            mock_prices = mock_prices[mock_prices < np.percentile(mock_prices, 95)]
+            price_bins = pd.cut(mock_prices, bins=20).value_counts().sort_index()
+            price_bins.index = [f"{int(i.left)}-{int(i.right)}" for i in price_bins.index]
+            st.info("💡 Đang hiển thị Dữ liệu Mẫu (Mock) cho phân phối giá.")
+        st.bar_chart(price_bins)
+    
 # ================= TAB 2: MAPREDUCE & ALGORITHMS =================
 with tab2:
     st.header("Bước 2: Hệ thống MapReduce & Khai phá Mẫu Sinh lời (HUS-SPAN)")
