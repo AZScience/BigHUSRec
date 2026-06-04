@@ -464,13 +464,13 @@ with tab2:
 
         with st.status("Theo dõi Luồng MapReduce...", expanded=True) as status:
             log_to_console("Initializing SparkSession with Cloud-Optimized parameters...")
-            spark = SparkSession.builder \\
-                .appName("BigHUSRec") \\
-                .master("local[2]") \\
-                .config("spark.driver.memory", "512m") \\
-                .config("spark.executor.memory", "512m") \\
-                .config("spark.sql.shuffle.partitions", "2") \\
-                .config("spark.default.parallelism", "2") \\
+            spark = SparkSession.builder \
+                .appName("BigHUSRec") \
+                .master("local[2]") \
+                .config("spark.driver.memory", "512m") \
+                .config("spark.executor.memory", "512m") \
+                .config("spark.sql.shuffle.partitions", "2") \
+                .config("spark.default.parallelism", "2") \
                 .getOrCreate()
             spark.sparkContext.setLogLevel("ERROR")
             log_to_console("SparkContext successfully allocated. JVM is ready.")
