@@ -549,11 +549,14 @@ with tab3:
     </head>
     <body>
       <div class="mermaid">
-        graph LR
+        graph TD
             User[Session Clicks] --> Map[Quet Ma tran WHUOM]
             Map --> Score[Tinh tong diem Score]
             Score --> Sort[Sap xep va Cat Top K]
             Sort --> UI[Hien thi danh sach Goi y]
+            
+            style User fill:#f9f,stroke:#333,stroke-width:2px
+            style UI fill:#bbf,stroke:#333,stroke-width:2px
       </div>
       <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
@@ -564,7 +567,7 @@ with tab3:
     """
     
     st.markdown("**Lưu đồ Thuật toán Sinh Gợi ý (Serving Flow):**")
-    components.html(serving_mermaid, height=200)
+    components.html(serving_mermaid, height=500, scrolling=True)
 
     evidence_3_1 = """
 **Bảng Minh chứng Tính toán Cục bộ (Scoring):**
