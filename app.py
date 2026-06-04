@@ -430,6 +430,19 @@ with tab2:
         evidence_md=evidence_2_2
     )
 
+    st.markdown("### ⚙️ Cấu hình Tham số Chạy (Tùy chọn)")
+    limit_rows_option = st.selectbox("Giới hạn số dòng dữ liệu (giúp chạy nhanh hơn trên máy cá nhân):", 
+                                     options=["1.000 dòng (Demo siêu tốc)", "10.000 dòng (Khuyên dùng)", "100.000 dòng", "Toàn bộ dữ liệu gốc (Rất chậm)"], 
+                                     index=1)
+    
+    limit_n = None
+    if limit_rows_option == "1.000 dòng (Demo siêu tốc)":
+        limit_n = 1000
+    elif limit_rows_option == "10.000 dòng (Khuyên dùng)":
+        limit_n = 10000
+    elif limit_rows_option == "100.000 dòng":
+        limit_n = 100000
+
     if st.button("⚡ Chạy thuật toán MapReduce & Trích xuất Bảng Minh chứng Thực tế"):
         c_path = st.session_state.get('click_path', 'yoochoose-clicks.dat')
         p_path = st.session_state.get('purchase_path', 'yoochoose-buys.dat')
@@ -465,6 +478,12 @@ with tab2:
             clicks_df = load_clickstream(spark, c_path)
             log_to_console(f"Reading Purchases from {p_path}...")
             purchases_df = load_purchases(spark, p_path)
+            
+            if limit_n:
+                log_to_console(f"Limiting dataset to Top {limit_n} rows for faster execution...")
+                clicks_df = clicks_df.limit(limit_n)
+                purchases_df = purchases_df.limit(limit_n)
+            
             
             st.write("✅ Nạp dữ liệu xong. Đang chạy HUS-SPAN (Map Phase)...")
             log_to_console(f"Starting HUS-SPAN Algorithm. Min Utility Threshold: {min_utility}")
