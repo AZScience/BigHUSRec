@@ -541,16 +541,32 @@ with tab3:
     st.header("Bước 3: Lọc cộng tác & Phục vụ (Serving)")
     
     st.markdown('<div class="step-box"><b>Khâu 3.1: Sinh Gợi ý Top-K bằng Lọc cộng tác Lai</b></div>', unsafe_allow_html=True)
-    evidence_3_1 = """
-**Lưu đồ Thuật toán Sinh Gợi ý (Serving Flow):**
-```mermaid
-graph LR;
-    User[Session Clicks] --> Map[Quét Ma trận WHUOM];
-    Map --> Score[Tính tổng điểm Score];
-    Score --> Sort[Sắp xếp & Cắt Top-K];
-    Sort --> UI[Hiển thị danh sách Gợi ý];
-```
+    serving_mermaid = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>body { font-family: sans-serif; display: flex; justify-content: center; }</style>
+    </head>
+    <body>
+      <div class="mermaid">
+        graph LR
+            User[Session Clicks] --> Map[Quet Ma tran WHUOM]
+            Map --> Score[Tinh tong diem Score]
+            Score --> Sort[Sap xep va Cat Top K]
+            Sort --> UI[Hien thi danh sach Goi y]
+      </div>
+      <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+      </script>
+    </body>
+    </html>
+    """
+    
+    st.markdown("**Lưu đồ Thuật toán Sinh Gợi ý (Serving Flow):**")
+    components.html(serving_mermaid, height=200)
 
+    evidence_3_1 = """
 **Bảng Minh chứng Tính toán Cục bộ (Scoring):**
 Giả sử Session click vào `214536`.
 | Candidate Purchase | Score từ WHUOM |
