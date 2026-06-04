@@ -316,11 +316,11 @@ with tab2:
     <body>
       <div class="mermaid">
         graph TD;
-            subgraph SG1 [Tầng Quản lý]
+            subgraph Master_Node
                 A[Dữ liệu YOOCHOOSE khổng lồ] --> B(Bộ điều phối DAG Scheduler);
             end
 
-            subgraph SG2 [Tầng Ánh xạ Map Phase]
+            subgraph Map_Phase
                 B -->|Chia nhỏ dữ liệu| C[Executor 1];
                 B -->|Chia nhỏ dữ liệu| D[Executor 2];
                 B -->|Chia nhỏ dữ liệu| E[Executor 3];
@@ -334,7 +334,7 @@ with tab2:
                 H -->|Giữ lại nhánh| K[Mẫu cục bộ Local HUS];
             end
 
-            subgraph SG3 [Tầng Trộn và Rút gọn Reduce Phase]
+            subgraph Reduce_Phase
                 I --> L((Mạng truyền tải Shuffle Layer));
                 J --> L;
                 K --> L;
