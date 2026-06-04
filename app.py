@@ -1,4 +1,5 @@
 import streamlit as st
+import graphviz
 import pandas as pd
 import os
 import sys
@@ -311,72 +312,50 @@ with tab2:
     st.markdown('<div class="step-box"><b>Khâu 2.1: Tại sao phải sử dụng MapReduce & Mô hình Toán học?</b></div>', unsafe_allow_html=True)
     
     import streamlit.components.v1 as components
-    mapreduce_mermaid = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <style>body { font-family: sans-serif; display: flex; justify-content: center; }</style>
-    </head>
-    <body>
-      <div class="mermaid">
-        graph TD
-            subgraph Master_Node
-                A["Dữ liệu YOOCHOOSE"]
-                B("Bộ điều phối DAG")
-            end
+    mapreduce_graph = graphviz.Digraph(node_attr={'shape': 'box', 'fontname': 'sans-serif'}, edge_attr={'fontname': 'sans-serif'})
+    
+    with mapreduce_graph.subgraph(name='cluster_Master_Node') as c:
+        c.attr(label='Master Node', color='blue')
+        c.node('A', 'Dữ liệu YOOCHOOSE', style='filled', fillcolor='#f9f9ff')
+        c.node('B', 'Bộ điều phối DAG', shape='ellipse')
+        c.edge('A', 'B')
 
-            subgraph Map_Phase
-                C["Executor 1"]
-                D["Executor 2"]
-                E["Executor 3"]
-                F{"Tính SWU và Cắt tỉa"}
-                G{"Tính SWU và Cắt tỉa"}
-                H{"Tính SWU và Cắt tỉa"}
-                I["Mẫu cục bộ Local HUS"]
-                J["Mẫu cục bộ Local HUS"]
-                K["Mẫu cục bộ Local HUS"]
-            end
+    with mapreduce_graph.subgraph(name='cluster_Map_Phase') as c:
+        c.attr(label='Map Phase', color='green')
+        c.node('C', 'Executor 1')
+        c.node('D', 'Executor 2')
+        c.node('E', 'Executor 3')
+        c.node('F', 'Tính SWU và Cắt tỉa', shape='diamond')
+        c.node('G', 'Tính SWU và Cắt tỉa', shape='diamond')
+        c.node('H', 'Tính SWU và Cắt tỉa', shape='diamond')
+        c.node('I', 'Mẫu cục bộ Local HUS')
+        c.node('J', 'Mẫu cục bộ Local HUS')
+        c.node('K', 'Mẫu cục bộ Local HUS')
+        c.edge('C', 'F')
+        c.edge('D', 'G')
+        c.edge('E', 'H')
+        c.edge('F', 'I', label='Giữ lại nhánh')
+        c.edge('G', 'J', label='Giữ lại nhánh')
+        c.edge('H', 'K', label='Giữ lại nhánh')
 
-            subgraph Reduce_Phase
-                L(("Shuffle Layer"))
-                M["Reducer Gom nhóm"]
-                N["Cộng dồn Utility"]
-                O[("Global HUS Patterns")]
-            end
+    with mapreduce_graph.subgraph(name='cluster_Reduce_Phase') as c:
+        c.attr(label='Reduce Phase', color='red')
+        c.node('L', 'Shuffle Layer', shape='ellipse')
+        c.node('M', 'Reducer Gom nhóm')
+        c.node('N', 'Cộng dồn Utility')
+        c.node('O', 'Global HUS Patterns', shape='cylinder', style='filled', fillcolor='#bbbbff')
+        c.edge('L', 'M')
+        c.edge('M', 'N')
+        c.edge('N', 'O')
 
-            A --> B
-            B -->|Chia nho| C
-            B -->|Chia nho| D
-            B -->|Chia nho| E
-            
-            C --> F
-            D --> G
-            E --> H
-            
-            F -->|Giu lai nhanh| I
-            G -->|Giu lai nhanh| J
-            H -->|Giu lai nhanh| K
-            
-            I --> L
-            J --> L
-            K --> L
-            
-            L --> M
-            M --> N
-            N --> O
+    mapreduce_graph.edge('B', 'C', label='Chia nhỏ')
+    mapreduce_graph.edge('B', 'D', label='Chia nhỏ')
+    mapreduce_graph.edge('B', 'E', label='Chia nhỏ')
+    mapreduce_graph.edge('I', 'L')
+    mapreduce_graph.edge('J', 'L')
+    mapreduce_graph.edge('K', 'L')
 
-            style A fill:#f9f,stroke:#333,stroke-width:2px
-            style L fill:#ff9,stroke:#333
-            style O fill:#bbf,stroke:#333,stroke-width:4px
-      </div>
-      <script type="module">
-        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({ startOnLoad: true, theme: 'default' });
-      </script>
-    </body>
-    </html>
-    """
-    components.html(mapreduce_mermaid, height=650, scrolling=True)
+    st.graphviz_chart(mapreduce_graph)
 
     render_academic_block(
         title="Giải đáp: Tại sao hệ thống này BẮT BUỘC phải dùng MapReduce?",
@@ -390,42 +369,27 @@ with tab2:
 
     st.markdown('<div class="step-box"><b>Khâu 2.2: Mô hình Thuật toán HUS-SPAN (LQS-Tree)</b></div>', unsafe_allow_html=True)
     
-    tree_mermaid = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <style>body { font-family: sans-serif; display: flex; justify-content: center; }</style>
-    </head>
-    <body>
-      <div class="mermaid">
-        graph TD
-            Root(("Root"))
-            S1(("Item A SWU 6000"))
-            S2(("Item B SWU 2000"))
-            S1A(("A tiến tới C SWU 5500"))
-            S1B(("A tiến tới D SWU 4000"))
-            DeadX["Không duyệt nhánh B"]
-
-            Root --> S1
-            Root --> S2
-            
-            S1 --> S1A
-            S1 --> S1B
-            
-            S2 -->|Bi chat do SWU nho| DeadX
-            
-            style S2 fill:#ffcccc,stroke:#ff0000,stroke-width:2px
-            style DeadX fill:#f9f9f9,stroke:#999,stroke-width:1px
-            style S1A fill:#ccffcc,stroke:#00aa00
-      </div>
-      <script type="module">
-        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({ startOnLoad: true, theme: 'default' });
-      </script>
-    </body>
-    </html>
-    """
-    components.html(tree_mermaid, height=350, scrolling=True)
+    tree_graph = graphviz.Digraph(node_attr={'shape': 'ellipse', 'fontname': 'sans-serif'}, edge_attr={'fontname': 'sans-serif'})
+    tree_graph.node('Root', 'Root', style='filled', fillcolor='lightgrey')
+    tree_graph.node('S1', 'Item A
+SWU: 6000')
+    tree_graph.node('S2', 'Item B
+SWU: 2000', style='filled', fillcolor='#ffcccc', color='red')
+    tree_graph.node('S1A', 'A tiến tới C
+SWU: 5500', style='filled', fillcolor='#ccffcc')
+    tree_graph.node('S1B', 'A tiến tới D
+SWU: 4000')
+    tree_graph.node('DeadX', 'Không duyệt
+nhánh B', shape='box', style='filled', fillcolor='#f9f9f9', color='gray')
+    
+    tree_graph.edge('Root', 'S1')
+    tree_graph.edge('Root', 'S2')
+    tree_graph.edge('S1', 'S1A')
+    tree_graph.edge('S1', 'S1B')
+    tree_graph.edge('S2', 'DeadX', label='Bị chặt do
+SWU nhỏ')
+    
+    st.graphviz_chart(tree_graph)
 
     render_academic_block(
         title="Lý thuyết: Cắt tỉa nhánh trên Cây LQS-Tree",
@@ -565,39 +529,21 @@ with tab3:
     st.header("Bước 3: Lọc cộng tác & Phục vụ (Serving)")
     
     st.markdown('<div class="step-box"><b>Khâu 3.1: Sinh Gợi ý Top-K bằng Lọc cộng tác Lai</b></div>', unsafe_allow_html=True)
-    serving_mermaid = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <style>body { font-family: sans-serif; display: flex; justify-content: center; }</style>
-    </head>
-    <body>
-      <div class="mermaid">
-        graph TD
-            User["Session Clicks"]
-            Map["Quét Ma trận WHUOM"]
-            Score["Tính tổng điểm Score"]
-            Sort["Sắp xếp và Cắt Top K"]
-            UI["Hiển thị danh sách Gợi ý"]
-
-            User --> Map
-            Map --> Score
-            Score --> Sort
-            Sort --> UI
-            
-            style User fill:#f9f,stroke:#333,stroke-width:2px
-            style UI fill:#bbf,stroke:#333,stroke-width:2px
-      </div>
-      <script type="module">
-        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({ startOnLoad: true, theme: 'default' });
-      </script>
-    </body>
-    </html>
-    """
-    
     st.markdown("**Lưu đồ Thuật toán Sinh Gợi ý (Serving Flow):**")
-    components.html(serving_mermaid, height=500, scrolling=True)
+    serving_graph = graphviz.Digraph(node_attr={'shape': 'box', 'fontname': 'sans-serif'}, edge_attr={'fontname': 'sans-serif'})
+    serving_graph.attr(rankdir='TD')
+    serving_graph.node('User', 'Session Clicks', style='filled', fillcolor='#f9f9ff', shape='ellipse')
+    serving_graph.node('Map', 'Quét Ma trận WHUOM')
+    serving_graph.node('Score', 'Tính tổng điểm Score')
+    serving_graph.node('Sort', 'Sắp xếp và Cắt Top K')
+    serving_graph.node('UI', 'Hiển thị danh sách Gợi ý', style='filled', fillcolor='#bbffbb', shape='ellipse')
+    
+    serving_graph.edge('User', 'Map')
+    serving_graph.edge('Map', 'Score')
+    serving_graph.edge('Score', 'Sort')
+    serving_graph.edge('Sort', 'UI')
+    
+    st.graphviz_chart(serving_graph)
 
     evidence_3_1 = """
 **Bảng Minh chứng Tính toán Cục bộ (Scoring):**
