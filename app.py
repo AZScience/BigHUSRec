@@ -459,7 +459,7 @@ with tab2:
             import time
             timestamp = time.strftime("%H:%M:%S") + f".{int((time.time() % 1) * 1000):03d}"
             logs.append(f"[{timestamp}] [Spark Driver] {msg}")
-            console_placeholder.code("\\n".join(logs), language="bash")
+            console_placeholder.code("\n".join(logs), language="bash")
 
         with st.status("Theo dõi Luồng MapReduce...", expanded=True) as status:
             log_to_console("Initializing SparkSession with Cloud-Optimized parameters...")
