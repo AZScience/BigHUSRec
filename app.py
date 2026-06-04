@@ -319,7 +319,6 @@ with tab2:
     </head>
     <body>
       <div class="mermaid">
-      <div class="mermaid">
         graph TD
             subgraph Master_Node
                 A["Dữ liệu YOOCHOOSE"]
