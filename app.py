@@ -550,10 +550,10 @@ with tab3:
     <body>
       <div class="mermaid">
         graph TD
-            User[Session Clicks] --> Map[Quét Ma trận WHUOM]
-            Map --> Score[Tính tổng điểm Score]
-            Score --> Sort[Sắp xếp và Cắt Top K]
-            Sort --> UI[Hiển thị danh sách Gợi ý]
+            User["Session Clicks"] --> Map["Quét Ma trận WHUOM"]
+            Map --> Score["Tính tổng điểm Score"]
+            Score --> Sort["Sắp xếp và Cắt Top K"]
+            Sort --> UI["Hiển thị danh sách Gợi ý"]
             
             style User fill:#f9f,stroke:#333,stroke-width:2px
             style UI fill:#bbf,stroke:#333,stroke-width:2px
