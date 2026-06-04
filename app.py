@@ -371,23 +371,17 @@ with tab2:
     
     tree_graph = graphviz.Digraph(node_attr={'shape': 'ellipse', 'fontname': 'sans-serif'}, edge_attr={'fontname': 'sans-serif'})
     tree_graph.node('Root', 'Root', style='filled', fillcolor='lightgrey')
-    tree_graph.node('S1', 'Item A
-SWU: 6000')
-    tree_graph.node('S2', 'Item B
-SWU: 2000', style='filled', fillcolor='#ffcccc', color='red')
-    tree_graph.node('S1A', 'A tiến tới C
-SWU: 5500', style='filled', fillcolor='#ccffcc')
-    tree_graph.node('S1B', 'A tiến tới D
-SWU: 4000')
-    tree_graph.node('DeadX', 'Không duyệt
-nhánh B', shape='box', style='filled', fillcolor='#f9f9f9', color='gray')
+    tree_graph.node('S1', 'Item A\\nSWU: 6000')
+    tree_graph.node('S2', 'Item B\\nSWU: 2000', style='filled', fillcolor='#ffcccc', color='red')
+    tree_graph.node('S1A', 'A tiến tới C\\nSWU: 5500', style='filled', fillcolor='#ccffcc')
+    tree_graph.node('S1B', 'A tiến tới D\\nSWU: 4000')
+    tree_graph.node('DeadX', 'Không duyệt\\nnhánh B', shape='box', style='filled', fillcolor='#f9f9f9', color='gray')
     
     tree_graph.edge('Root', 'S1')
     tree_graph.edge('Root', 'S2')
     tree_graph.edge('S1', 'S1A')
     tree_graph.edge('S1', 'S1B')
-    tree_graph.edge('S2', 'DeadX', label='Bị chặt do
-SWU nhỏ')
+    tree_graph.edge('S2', 'DeadX', label='Bị chặt do\\nSWU nhỏ')
     
     st.graphviz_chart(tree_graph)
 
