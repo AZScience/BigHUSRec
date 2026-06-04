@@ -321,31 +321,31 @@ with tab2:
       <div class="mermaid">
         graph TD;
             subgraph Master_Node
-                A["Dữ liệu YOOCHOOSE khổng lồ"] --> B("Bộ điều phối DAG Scheduler");
+                A[Dữ liệu YOOCHOOSE khổng lồ] --> B(Bộ điều phối DAG Scheduler);
             end
 
             subgraph Map_Phase
-                B -->|"Chia nhỏ dữ liệu"| C["Executor 1"];
-                B -->|"Chia nhỏ dữ liệu"| D["Executor 2"];
-                B -->|"Chia nhỏ dữ liệu"| E["Executor 3"];
+                B -->|Chia nhỏ dữ liệu| C[Executor 1];
+                B -->|Chia nhỏ dữ liệu| D[Executor 2];
+                B -->|Chia nhỏ dữ liệu| E[Executor 3];
                 
-                C --> F{"Tính SWU và Cắt tỉa"};
-                D --> G{"Tính SWU và Cắt tỉa"};
-                E --> H{"Tính SWU và Cắt tỉa"};
+                C --> F{Tính SWU và Cắt tỉa};
+                D --> G{Tính SWU và Cắt tỉa};
+                E --> H{Tính SWU và Cắt tỉa};
                 
-                F -->|"Giữ lại nhánh"| I["Mẫu cục bộ Local HUS"];
-                G -->|"Giữ lại nhánh"| J["Mẫu cục bộ Local HUS"];
-                H -->|"Giữ lại nhánh"| K["Mẫu cục bộ Local HUS"];
+                F -->|Giữ lại nhánh| I[Mẫu cục bộ Local HUS];
+                G -->|Giữ lại nhánh| J[Mẫu cục bộ Local HUS];
+                H -->|Giữ lại nhánh| K[Mẫu cục bộ Local HUS];
             end
 
             subgraph Reduce_Phase
-                I --> L(("Mạng truyền tải Shuffle Layer"));
+                I --> L((Mạng truyền tải Shuffle Layer));
                 J --> L;
                 K --> L;
                 
-                L --> M["Reducer Gom nhóm Chuỗi Item"];
-                M --> N["Cộng dồn Utility toàn Cụm"];
-                N --> O[("Global High Utility Patterns")];
+                L --> M[Reducer Gom nhóm Chuỗi Item];
+                M --> N[Cộng dồn Utility toàn Cụm];
+                N --> O[(Global High Utility Patterns)];
             end
 
             style A fill:#f9f,stroke:#333,stroke-width:2px
@@ -382,13 +382,13 @@ with tab2:
     <body>
       <div class="mermaid">
         graph TD;
-            Root(("Root")) --> S1(("Item A: SWU 6000"));
-            Root --> S2(("Item B: SWU 2000"));
+            Root((Root)) --> S1((Item A SWU 6000));
+            Root --> S2((Item B SWU 2000));
             
-            S1 --> S1A(("A tiến tới C: SWU 5500"));
-            S1 --> S1B(("A tiến tới D: SWU 4000"));
+            S1 --> S1A((A tiến tới C SWU 5500));
+            S1 --> S1B((A tiến tới D SWU 4000));
             
-            S2 -->|"Bị chặt do SWU nhỏ"| DeadX["Không duyệt tiếp nhánh B"];
+            S2 -->|Bị chặt do SWU nhỏ| DeadX[Không duyệt tiếp nhánh B];
             
             style S2 fill:#ffcccc,stroke:#ff0000,stroke-width:2px,stroke-dasharray: 5 5
             style DeadX fill:#f9f9f9,stroke:#999,stroke-width:1px
