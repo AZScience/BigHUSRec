@@ -319,34 +319,52 @@ with tab2:
     </head>
     <body>
       <div class="mermaid">
+      <div class="mermaid">
         graph TD
             subgraph Master_Node
-                A[Du lieu YOOCHOOSE] --> B(Bo dieu phoi)
+                A["Dữ liệu YOOCHOOSE"]
+                B("Bộ điều phối DAG")
             end
 
             subgraph Map_Phase
-                B -->|Chia nho du lieu| C[Executor 1]
-                B -->|Chia nho du lieu| D[Executor 2]
-                B -->|Chia nho du lieu| E[Executor 3]
-                
-                C --> F{Tinh SWU va Cat tia}
-                D --> G{Tinh SWU va Cat tia}
-                E --> H{Tinh SWU va Cat tia}
-                
-                F -->|Giu lai nhanh| I[Mau cuc bo Local HUS]
-                G -->|Giu lai nhanh| J[Mau cuc bo Local HUS]
-                H -->|Giu lai nhanh| K[Mau cuc bo Local HUS]
+                C["Executor 1"]
+                D["Executor 2"]
+                E["Executor 3"]
+                F{"Tính SWU và Cắt tỉa"}
+                G{"Tính SWU và Cắt tỉa"}
+                H{"Tính SWU và Cắt tỉa"}
+                I["Mẫu cục bộ Local HUS"]
+                J["Mẫu cục bộ Local HUS"]
+                K["Mẫu cục bộ Local HUS"]
             end
 
             subgraph Reduce_Phase
-                I --> L((Mang truyen tai Shuffle Layer))
-                J --> L
-                K --> L
-                
-                L --> M[Reducer Gom nhom]
-                M --> N[Cong don Utility]
-                N --> O[(Global High Utility Patterns)]
+                L(("Shuffle Layer"))
+                M["Reducer Gom nhóm"]
+                N["Cộng dồn Utility"]
+                O[("Global HUS Patterns")]
             end
+
+            A --> B
+            B -->|"Chia nhỏ"| C
+            B -->|"Chia nhỏ"| D
+            B -->|"Chia nhỏ"| E
+            
+            C --> F
+            D --> G
+            E --> H
+            
+            F -->|"Giữ lại nhánh"| I
+            G -->|"Giữ lại nhánh"| J
+            H -->|"Giữ lại nhánh"| K
+            
+            I --> L
+            J --> L
+            K --> L
+            
+            L --> M
+            M --> N
+            N --> O
 
             style A fill:#f9f,stroke:#333,stroke-width:2px
             style L fill:#ff9,stroke:#333
