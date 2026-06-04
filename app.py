@@ -345,17 +345,17 @@ with tab2:
             end
 
             A --> B
-            B -->|"Chia nhỏ"| C
-            B -->|"Chia nhỏ"| D
-            B -->|"Chia nhỏ"| E
+            B -->|Chia nho| C
+            B -->|Chia nho| D
+            B -->|Chia nho| E
             
             C --> F
             D --> G
             E --> H
             
-            F -->|"Giữ lại nhánh"| I
-            G -->|"Giữ lại nhánh"| J
-            H -->|"Giữ lại nhánh"| K
+            F -->|Giu lai nhanh| I
+            G -->|Giu lai nhanh| J
+            H -->|Giu lai nhanh| K
             
             I --> L
             J --> L
@@ -399,13 +399,20 @@ with tab2:
     <body>
       <div class="mermaid">
         graph TD
-            Root((Root)) --> S1((Item A SWU 6000))
-            Root --> S2((Item B SWU 2000))
+            Root(("Root"))
+            S1(("Item A SWU 6000"))
+            S2(("Item B SWU 2000"))
+            S1A(("A tiến tới C SWU 5500"))
+            S1B(("A tiến tới D SWU 4000"))
+            DeadX["Không duyệt nhánh B"]
+
+            Root --> S1
+            Root --> S2
             
-            S1 --> S1A((A tien toi C SWU 5500))
-            S1 --> S1B((A tien toi D SWU 4000))
+            S1 --> S1A
+            S1 --> S1B
             
-            S2 -->|Bi chat do SWU nho| DeadX[Khong duyet nhanh B]
+            S2 -->|Bi chat do SWU nho| DeadX
             
             style S2 fill:#ffcccc,stroke:#ff0000,stroke-width:2px
             style DeadX fill:#f9f9f9,stroke:#999,stroke-width:1px
@@ -567,10 +574,16 @@ with tab3:
     <body>
       <div class="mermaid">
         graph TD
-            User["Session Clicks"] --> Map["Quét Ma trận WHUOM"]
-            Map --> Score["Tính tổng điểm Score"]
-            Score --> Sort["Sắp xếp và Cắt Top K"]
-            Sort --> UI["Hiển thị danh sách Gợi ý"]
+            User["Session Clicks"]
+            Map["Quét Ma trận WHUOM"]
+            Score["Tính tổng điểm Score"]
+            Sort["Sắp xếp và Cắt Top K"]
+            UI["Hiển thị danh sách Gợi ý"]
+
+            User --> Map
+            Map --> Score
+            Score --> Sort
+            Sort --> UI
             
             style User fill:#f9f,stroke:#333,stroke-width:2px
             style UI fill:#bbf,stroke:#333,stroke-width:2px
